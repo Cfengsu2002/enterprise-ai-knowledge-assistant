@@ -1,0 +1,8 @@
+#!/bin/sh
+'''exec' "/Users/suchenfeng/Library/Mobile Documents/com~apple~CloudDocs/Desktop/代码/enterprise-ai-knowledge-assistant-platform/venv/bin/python3.12" "$0" "$@"
+' '''
+import sys
+from watchfiles.cli import cli
+if __name__ == '__main__':
+    sys.argv[0] = sys.argv[0].removesuffix('.exe')
+    sys.exit(cli())
