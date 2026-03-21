@@ -16,7 +16,12 @@ services:
       dockerfile: app/Dockerfile
     ports:
       - "8000:8000"
+    # 无 .env 时也可启动；需要 S3 时复制 .env.example 为 .env 并填写密钥
+    env_file:
+      - path: .env
+        required: false
     environment:
+      # 覆盖 .env 里的 localhost，使容器内连 db 服务
       DATABASE_URL: postgresql://postgres:postgres@db:5432/knowledge_assistant
     depends_on:
       - db
@@ -28,6 +33,7 @@ services:
     ports:
       - "5173:5173"
     environment:
-      VITE_API_URL: http://localhost:8000
+      # Vite 代理目标（容器内访问 backend 服务，不要用 localhost:8000）
+      VITE_BACKEND_PROXY: http://backend:8000
     depends_on:
       - backend

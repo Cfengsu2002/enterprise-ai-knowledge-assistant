@@ -33,6 +33,7 @@ def upload_file(
     enterprise_id: int,
     title: str | None = None,
     user_id: int | None = None,
+    content_type: str | None = None,
 ) -> dict:
     """
     Save file to disk and create a document record.
@@ -55,6 +56,11 @@ def upload_file(
         title=doc_title,
         file_path=relative_path,
         user_id=user_id,
+        storage_type="local",
+        original_filename=filename.strip(),
+        content_type=content_type,
+        byte_size=len(file_content),
+        file_metadata={"storage": "local_disk"},
     )
     if not record:
         file_path.unlink(missing_ok=True)

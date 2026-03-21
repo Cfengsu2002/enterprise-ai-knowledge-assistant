@@ -30,6 +30,7 @@ async def upload_document(
             enterprise_id=enterprise_id,
             title=title,
             user_id=user_id,
+            content_type=file.content_type,
         )
     except ValueError as e:
         raise HTTPException(status_code=400, detail=str(e)) from e

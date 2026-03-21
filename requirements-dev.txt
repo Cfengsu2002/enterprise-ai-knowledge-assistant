@@ -1,0 +1,5 @@
+# pip install -r requirements-dev.txt && pytest tests -q
+-r requirements.txt
+pytest>=8.0
+moto[s3]>=5.0,<6
+requests>=2.31.0
