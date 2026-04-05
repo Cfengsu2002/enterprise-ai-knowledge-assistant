@@ -2,6 +2,7 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
 from app.controllers.enterprise_controller import router as enterprise_router
+from app.controllers.rag_controller import router as rag_router
 from app.controllers.s3_multipart_controller import router as s3_multipart_router
 from app.controllers.upload_controller import router as upload_router
 
@@ -19,6 +20,7 @@ app.add_middleware(
 app.include_router(enterprise_router)
 app.include_router(upload_router)
 app.include_router(s3_multipart_router)
+app.include_router(rag_router)
 if __name__ == "__main__":
     import uvicorn
     uvicorn.run(

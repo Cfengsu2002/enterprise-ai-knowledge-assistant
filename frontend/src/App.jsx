@@ -1,5 +1,10 @@
 import { useState } from 'react'
-import { fetchEnterprise, getApiBaseUrl, uploadFileMultipartResumable } from './api/client'
+import {
+  fetchEnterprise,
+  getApiBaseUrl,
+  ragSemanticSearch,
+  uploadFileMultipartResumable,
+} from './api/client'
 import './App.css'
 
 function App() {
@@ -11,6 +16,12 @@ function App() {
   const [uploading, setUploading] = useState(false)
   const [uploadProgress, setUploadProgress] = useState(null)
   const [uploadResult, setUploadResult] = useState(null)
+
+  const [searchQuery, setSearchQuery] = useState('')
+  const [searchLimit, setSearchLimit] = useState('8')
+  const [searching, setSearching] = useState(false)
+  const [searchResults, setSearchResults] = useState(null)
+  const [searchError, setSearchError] = useState(null)
 
   const handleFetch = async () => {
     setError(null)
@@ -60,6 +71,33 @@ function App() {
     }
   }
 
+  const handleSemanticSearch = async () => {
+    setSearchError(null)
+    setSearchResults(null)
+    const id = Number(enterpriseId)
+    if (Number.isNaN(id) || id < 1) {
+      setSearchError('Enterprise ID must be a positive number')
+      return
+    }
+    const q = (searchQuery || '').trim()
+    if (!q) {
+      setSearchError('Enter a search query')
+      return
+    }
+    let limit = Number(searchLimit)
+    if (Number.isNaN(limit) || limit < 1) limit = 8
+    if (limit > 50) limit = 50
+    setSearching(true)
+    try {
+      const data = await ragSemanticSearch({ enterpriseId: id, query: q, limit })
+      setSearchResults(Array.isArray(data.results) ? data.results : [])
+    } catch (e) {
+      setSearchError(e.message || 'Search failed')
+    } finally {
+      setSearching(false)
+    }
+  }
+
   return (
     <div className="app">
       <h1>Enterprise AI Knowledge Assistant</h1>
@@ -75,6 +113,68 @@ function App() {
         <button onClick={handleFetch} disabled={loading}>
           {loading ? 'Loading…' : 'Fetch enterprise'}
         </button>
+      </div>
+
+      <div className="card">
+        <h2>语义搜索（RAG）</h2>
+        <p className="hint">
+          使用上方 <strong>Enterprise ID</strong>，对已写入向量库的文档做相似度检索（<code>POST /rag/search</code>
+          ）。
+        </p>
+        <label htmlFor="search-query">查询语句</label>
+        <textarea
+          id="search-query"
+          className="textarea"
+          rows={3}
+          value={searchQuery}
+          onChange={(e) => setSearchQuery(e.target.value)}
+          placeholder="例如：housing prices Gainesville"
+          disabled={searching}
+        />
+        <label htmlFor="search-limit">返回条数（1–50）</label>
+        <input
+          id="search-limit"
+          type="number"
+          min="1"
+          max="50"
+          value={searchLimit}
+          onChange={(e) => setSearchLimit(e.target.value)}
+          disabled={searching}
+        />
+        <button type="button" onClick={handleSemanticSearch} disabled={searching}>
+          {searching ? '搜索中…' : '搜索'}
+        </button>
+        {searchError && <p className="error">{searchError}</p>}
+        {searchResults && (
+          <div className="search-results">
+            <h3>结果 {searchResults.length} 条</h3>
+            {searchResults.length === 0 ? (
+              <p className="hint">无匹配片段。请确认该 enterprise 已上传并索引文档。</p>
+            ) : (
+              <ul className="search-hit-list">
+                {searchResults.map((hit) => (
+                  <li key={hit.id} className="search-hit">
+                    <div className="search-hit-meta">
+                      <span className="search-score">score {(hit.score ?? 0).toFixed(4)}</span>
+                      <span className="search-doc">
+                        {hit.document_title || `document #${hit.document_id}`}
+                      </span>
+                      <span className="search-chunk">
+                        chunk #{hit.chunk_index} · id {hit.id} · document {hit.document_id}
+                      </span>
+                      {hit.embedding_model && (
+                        <span className="search-model" title={hit.embedding_model}>
+                          {hit.embedding_model.split('/').pop()}
+                        </span>
+                      )}
+                    </div>
+                    <pre className="search-hit-content">{hit.content}</pre>
+                  </li>
+                ))}
+              </ul>
+            )}
+          </div>
+        )}
       </div>
 
       <div className="card">

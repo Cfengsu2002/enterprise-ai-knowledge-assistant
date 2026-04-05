@@ -1,11 +1,9 @@
-import os
 import uuid
 from pathlib import Path
 
+from app.config.local_upload_settings import UPLOAD_DIR
 from app.repositories.document_repo import create_document
-
-# Directory where uploaded files are stored (relative to project root)
-UPLOAD_DIR = Path(os.getenv("UPLOAD_DIR", "uploads"))
+from app.services.auto_index_upload import merge_indexing_into_document
 
 # Allowed extensions (optional safety). Empty = allow all.
 ALLOWED_EXTENSIONS = {"pdf", "txt", "md", "doc", "docx", "csv", "json"}
@@ -65,4 +63,4 @@ def upload_file(
     if not record:
         file_path.unlink(missing_ok=True)
         raise RuntimeError("Failed to create document record")
-    return record
+    return merge_indexing_into_document(record)

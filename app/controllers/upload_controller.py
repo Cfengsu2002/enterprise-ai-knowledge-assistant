@@ -13,9 +13,9 @@ async def upload_document(
     user_id: int | None = Form(None),
 ):
     """
-    Upload a file and create a document record.
-    Required: file, enterprise_id.
-    Optional: title (defaults to filename), user_id.
+    Upload a file, create a document record, then auto chunk + embed into `chunks`
+    (unless AUTO_INDEX_ON_UPLOAD=false). On embedding failure, upload still succeeds;
+    response may include `indexing_error`.
     """
     if not file.filename:
         raise HTTPException(status_code=400, detail="Filename is required")

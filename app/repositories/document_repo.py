@@ -3,6 +3,24 @@ from psycopg2.extras import Json
 from app.database import get_db_connection
 
 
+def get_document_by_id(document_id: int) -> dict | None:
+    with get_db_connection() as conn:
+        with conn.cursor() as cur:
+            cur.execute(
+                """
+                SELECT id, enterprise_id, user_id, title, file_path,
+                       storage_type, original_filename, content_type, byte_size,
+                       s3_bucket, s3_key, file_metadata,
+                       created_at, updated_at
+                FROM documents
+                WHERE id = %s
+                """,
+                (document_id,),
+            )
+            row = cur.fetchone()
+            return dict(row) if row else None
+
+
 def create_document(
     enterprise_id: int,
     title: str,

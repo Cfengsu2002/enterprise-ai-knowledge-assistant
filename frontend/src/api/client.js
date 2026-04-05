@@ -50,6 +50,29 @@ export async function fetchEnterprise(id) {
   return res.json()
 }
 
+/** POST /rag/search — 语义检索（与 curl 示例一致） */
+export async function ragSemanticSearch({ enterpriseId, query, limit = 8 }) {
+  const base = getBaseUrl()
+  let res
+  try {
+    res = await fetch(`${base}/rag/search`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        enterprise_id: enterpriseId,
+        query,
+        limit,
+      }),
+    })
+  } catch (err) {
+    throw new Error(`[RAG search] 无法连接后端。${err.message}`)
+  }
+  if (!res.ok) {
+    throw new Error(await readFetchError(res, 'search failed'))
+  }
+  return res.json()
+}
+
 /** Stable key for localStorage resume metadata */
 export function multipartResumeStorageKey(enterpriseId, file) {
   return `s3_multipart_v1:${enterpriseId}:${file.name}:${file.size}:${file.lastModified}`

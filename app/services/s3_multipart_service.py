@@ -290,7 +290,11 @@ def complete_multipart(*, session_id, parts: list[dict]) -> dict:
         raise RuntimeError("Failed to create document after S3 complete")
 
     update_session_status(sid, "completed")
-    return {"document": record, "s3_uri": s3_uri}
+
+    from app.services.auto_index_upload import merge_indexing_into_document
+
+    record_out = merge_indexing_into_document(dict(record))
+    return {"document": record_out, "s3_uri": s3_uri}
 
 
 def abort_multipart(*, session_id) -> None:

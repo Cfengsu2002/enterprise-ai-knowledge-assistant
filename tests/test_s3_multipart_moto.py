@@ -118,7 +118,7 @@ def test_multipart_single_part_and_list_parts_resume(memory_db):
         # 服务端直传分片（与预签名二选一，用于绕过浏览器 CORS）
         init2 = s3mp.initiate_multipart(
             enterprise_id=1,
-            filename="server-part.bin",
+            filename="server-part.txt",
             file_size=file_size,
             content_type=None,
             title="srv",
